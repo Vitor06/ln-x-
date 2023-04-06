@@ -1,4 +1,4 @@
-from ctypes import Structure, Union, c_float , c_uint32
+from ctypes import Structure, Union, c_float, c_uint32, c_uint8
 import math
 import time
 
@@ -15,15 +15,40 @@ class IEE754(Union):
      _fields_ = [("x",c_float),
                  ("bits",struct)]
 
-def get_IEE754(y):
-    z = IEE754()
-    z.x = y
-    fz = z.bits.f
-    e = z.bits.e
-    s = z.bits.s
-    f23 = 0.00000011920928955078125 # 2^-23
-    fr = fz*f23 # ver como float
-    return fz,e,s,fr
+def novo_numero_IEEE(num):
+    y = IEE754()
+    y.x = num
+    return y
+
+# def get_IEE754(y):
+#     z = IEE754()
+#     z.x = y
+#     fz = z.bits.f
+#     e = z.bits.e
+#     s = z.bits.s
+#     f23 = 0.00000011920928955078125 # 2^-23
+#     fr = fz*f23 # ver como float
+#     return fz,e,s,fr
+
+def IEEE_POW_2(exp):
+    x = novo_numero_IEEE(2)
+
+    a = c_uint8(x.bits.e)
+    b = c_uint8(exp - 1)
+
+    if(exp > 0):
+        while b.value != 0:
+            carry = c_uint8(a.value & b.value) # Carry value is calculated 
+            a = c_uint8(a.value ^ b.value) # Sum value is calculated and stored in a
+            b = c_uint8(carry.value << 1) # The carry value is shifted towards left by a bit
+    # elif(exp < 0):
+    #     while b.value != 0:
+    #         borrow = c_uint8((~a.value) & b.value) #get the borrow bit
+    #         a = c_uint8(a.value ^ b.value) # get the difference using XOR
+    #         b = c_uint8(borrow.value << 1)
+
+    x.bits.e = a.value
+    return x # returns the final sum
 
 def gerar_nice_numbers(inicio, fim):
     nice_numbers = []
@@ -148,46 +173,49 @@ def ln(x):
     # print("ln(", x, ") = ", resultado_ln)
 
 def main():
+    x = IEEE_POW_2(5)
+    print(x.x)
+
     # fz, e, s, fr = get_IEE754(3.125)
     # print(fz,e,s,fr)
 
     # x para cálculo de ln(x)
-    erro,x_list,tempo,resultado_calculadora,resultado_nice_numbers = [],[],[],[],[]
-    for x in range(1,100):
+    # erro,x_list,tempo,resultado_calculadora,resultado_nice_numbers = [],[],[],[],[]
+    # for x in range(1,100):
 
-        ln_calculadora = math.log(x)
+    #     ln_calculadora = math.log(x)
 
-        start = time.time()
-        ln_nice_numbers = ln(x)
-        end = time.time()
+    #     start = time.time()
+    #     ln_nice_numbers = ln(x)
+    #     end = time.time()
 
-        erro.append(abs(ln_nice_numbers - ln_calculadora))
+    #     erro.append(abs(ln_nice_numbers - ln_calculadora))
 
-        tempo.append(end -start)
-        x_list.append(x)
-        resultado_calculadora.append(ln_calculadora)
-        resultado_nice_numbers.append(ln_nice_numbers)
+    #     tempo.append(end -start)
+    #     x_list.append(x)
+    #     resultado_calculadora.append(ln_calculadora)
+    #     resultado_nice_numbers.append(ln_nice_numbers)
 
-    #Erro
-    plt.plot(x_list,erro,label = 'ln(X)-Calculadora X Nice-Numbers')
-    plt.ylabel('Erro')
-    plt.xlabel('Argumento')
-    plt.legend()
-    plt.show()
-    #tempo
-    plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
-    plt.ylabel('Tempo')
-    plt.xlabel('Argumento')
-    plt.legend()
-    plt.show()
-    #Resultado
-    plt.plot(x_list,resultado_calculadora,label = 'ln(X)-Calculadora',color ='blue')
-    plt.plot(x_list,resultado_nice_numbers,label = 'ln(X)- Nice-Numbers',color =  'red')
-    plt.yscale('log')
-    plt.ylabel('ln(x)')
-    plt.xlabel('Argumento')
-    plt.legend()
-    plt.show()
+    # #Erro
+    # plt.plot(x_list,erro,label = 'ln(X)-Calculadora X Nice-Numbers')
+    # plt.ylabel('Erro')
+    # plt.xlabel('Argumento')
+    # plt.legend()
+    # plt.show()
+    # #tempo
+    # plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
+    # plt.ylabel('Tempo')
+    # plt.xlabel('Argumento')
+    # plt.legend()
+    # plt.show()
+    # #Resultado
+    # plt.plot(x_list,resultado_calculadora,label = 'ln(X)-Calculadora',color ='blue')
+    # plt.plot(x_list,resultado_nice_numbers,label = 'ln(X)- Nice-Numbers',color =  'red')
+    # plt.yscale('log')
+    # plt.ylabel('ln(x)')
+    # plt.xlabel('Argumento')
+    # plt.legend()
+    # plt.show()
 
 
 main()
