@@ -1,5 +1,8 @@
 from ctypes import Structure, Union, c_float , c_uint32
 import math
+import time
+
+from matplotlib import pyplot as plt
 
 
 class struct (Structure):
@@ -11,7 +14,7 @@ class struct (Structure):
 class IEE754(Union):
      _fields_ = [("x",c_float),
                  ("bits",struct)]
-     
+
 def get_IEE754(y):
     z = IEE754()
     z.x = y
@@ -30,7 +33,7 @@ def gerar_nice_numbers(inicio, fim):
          # +- (2 ** +-i) +- 1
 
          nice_number_1 = (2**i)+1
-         nice_number_2 = (2**i)-1 
+         nice_number_2 = (2**i)-1
 
          nice_number_3 = (2**-i)+1
          nice_number_4 = (2**-i)-1
@@ -39,7 +42,7 @@ def gerar_nice_numbers(inicio, fim):
          nice_number_6 = -(2**-i)-1
 
          nice_number_7 = -(2**i)+1
-         nice_number_8 = -(2**i)-1 
+         nice_number_8 = -(2**i)-1
 
          nice_numbers.append(nice_number_1)
          nice_numbers.append(nice_number_2)
@@ -56,7 +59,7 @@ def gerar_nice_numbers(inicio, fim):
 
 def gerar_tabela_ln_da_lista(lista_numeros):
     lista_numeros = [i for i in lista_numeros if i > 0] # Modifica a lista para apenas número positivos
-    
+
     dict_ln = {}
 
     for i in lista_numeros:
@@ -81,7 +84,7 @@ def encontrar_i_do_nice_number(nice_number):
         nice_numbers = []
 
         nice_number_1 = (2**i)+1
-        nice_number_2 = (2**i)-1 
+        nice_number_2 = (2**i)-1
 
         nice_number_3 = (2**-i)+1
         nice_number_4 = (2**-i)-1
@@ -90,7 +93,7 @@ def encontrar_i_do_nice_number(nice_number):
         nice_number_6 = -(2**-i)-1
 
         nice_number_7 = -(2**i)+1
-        nice_number_8 = -(2**i)-1 
+        nice_number_8 = -(2**i)-1
 
         nice_numbers.append(nice_number_1)
         nice_numbers.append(nice_number_2)
@@ -111,43 +114,81 @@ def encontrar_i_do_nice_number(nice_number):
 def recuperacao_residuo(xn):
     return abs(1 - xn)
 
-# fz, e, s, fr = get_IEE754(3.125)
 
-# print(fz,e,s,fr)
+def ln(x):
+    nice_numbers = gerar_nice_numbers(-8, 8)
+    lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
+    argumento_reduzido, numero_imediatamente_superior = reduzir_argumento(x, nice_numbers)
 
-# x para cálculo de ln(x)
-x = 54
+    xj = argumento_reduzido
+    yj = lista_ln[numero_imediatamente_superior]
+    iter = len(lista_ln.keys())
 
-nice_numbers = gerar_nice_numbers(-8, 8)
-lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
-argumento_reduzido, numero_imediatamente_superior = reduzir_argumento(x, nice_numbers)
+    while iter > 0:
+        maior_k = 0
 
-xj = argumento_reduzido
-yj = lista_ln[numero_imediatamente_superior]
-iter = len(lista_ln.keys())
+        for i in lista_ln.keys():
+            # Se k for 1, não há mudança no resultado
+            if(i != 1 and i * xj < 1):
+                maior_k = i
 
-while iter > 0:
-    maior_k = 0
+        # Condição de parada
+        # Percorreu toda a lista de logaritmo e não encontrou
+        # valor tal que i * xj < 1
+        if(maior_k == 0):
+            break
 
-    for i in lista_ln.keys():
-        # Se k for 1, não há mudança no resultado
-        if(i != 1 and i * xj < 1):
-            maior_k = i
+        xj = maior_k * xj
+        yj = yj - lista_ln[maior_k]
+        iter = iter -1
 
-    # Condição de parada
-    # Percorreu toda a lista de logaritmo e não encontrou
-    # valor tal que i * xj < 1
-    if(maior_k == 0):
-        break
-    
-    xj = maior_k * xj
-    yj = yj - lista_ln[maior_k]
-    iter = iter -1
+    resultado_ln = yj - recuperacao_residuo(xj)
 
-resultado_ln = yj - recuperacao_residuo(xj)
+    return resultado_ln
+    # print("ln(", x, ") = ", resultado_ln)
 
-print("ln(", x, ") = ", resultado_ln)
+def main():
+    # fz, e, s, fr = get_IEE754(3.125)
+    # print(fz,e,s,fr)
+
+    # x para cálculo de ln(x)
+    erro,x_list,tempo,resultado_calculadora,resultado_nice_numbers = [],[],[],[],[]
+    for x in range(1,100):
+
+        ln_calculadora = math.log(x)
+
+        start = time.time()
+        ln_nice_numbers = ln(x)
+        end = time.time()
+
+        erro.append(abs(ln_nice_numbers - ln_calculadora))
+
+        tempo.append(end -start)
+        x_list.append(x)
+        resultado_calculadora.append(ln_calculadora)
+        resultado_nice_numbers.append(ln_nice_numbers)
+
+    #Erro
+    plt.plot(x_list,erro,label = 'ln(X)-Calculadora X Nice-Numbers')
+    plt.ylabel('Erro')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
+    #tempo
+    plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
+    plt.ylabel('Tempo')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
+    #Resultado
+    plt.plot(x_list,resultado_calculadora,label = 'ln(X)-Calculadora',color ='blue')
+    plt.plot(x_list,resultado_nice_numbers,label = 'ln(X)- Nice-Numbers',color =  'red')
+    plt.yscale('log')
+    plt.ylabel('ln(x)')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
 
 
-
+main()
 
