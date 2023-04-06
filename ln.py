@@ -34,21 +34,23 @@ def IEEE_POW_2(exp):
     x = novo_numero_IEEE(2)
 
     a = c_uint8(x.bits.e)
-    b = c_uint8(exp - 1)
+    
 
     if(exp > 0):
+        b = c_uint8(exp - 1)
         while b.value != 0:
-            carry = c_uint8(a.value & b.value) # Carry value is calculated 
-            a = c_uint8(a.value ^ b.value) # Sum value is calculated and stored in a
-            b = c_uint8(carry.value << 1) # The carry value is shifted towards left by a bit
-    # elif(exp < 0):
-    #     while b.value != 0:
-    #         borrow = c_uint8((~a.value) & b.value) #get the borrow bit
-    #         a = c_uint8(a.value ^ b.value) # get the difference using XOR
-    #         b = c_uint8(borrow.value << 1)
+            carry = c_uint8(a.value & b.value) # O valor do carry é calculado 
+            a = c_uint8(a.value ^ b.value) # O valor da soma é calculado
+            b = c_uint8(carry.value << 1) # O valor do carry é shiftado para esquerda
+    elif(exp < 0):
+        b = c_uint8(-exp + 1)
+        while b.value != 0:
+            borrow = c_uint8((~a.value) & b.value) # O valor do borrow é calculado
+            a = c_uint8(a.value ^ b.value) # XOR
+            b = c_uint8(borrow.value << 1) # O valor do borrow é shiftado para esquerda
 
     x.bits.e = a.value
-    return x # returns the final sum
+    return x # Retorna o valor final
 
 def gerar_nice_numbers(inicio, fim):
     nice_numbers = []
@@ -173,7 +175,7 @@ def ln(x):
     # print("ln(", x, ") = ", resultado_ln)
 
 def main():
-    x = IEEE_POW_2(5)
+    x = IEEE_POW_2(-3)
     print(x.x)
 
     # fz, e, s, fr = get_IEE754(3.125)
