@@ -97,9 +97,7 @@ def reduzir_argumento(x, lista):
 def recuperacao_residuo(xn):
     return abs(1 - xn)
 
-def ln(x):
-    nice_numbers = gerar_nice_numbers(-8, 8)
-    lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
+def ln(x, lista_ln, nice_numbers):
     argumento_reduzido, numero_imediatamente_superior = reduzir_argumento(x, nice_numbers)
 
     xj = argumento_reduzido
@@ -129,13 +127,16 @@ def ln(x):
     return resultado_ln
 
 def main():
+    nice_numbers = gerar_nice_numbers(-8, 8)
+    lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
+
     erro, x_list, tempo, resultado_calculadora, resultado_nice_numbers = [],[],[],[],[]
     for x in range(1,100):
 
         ln_calculadora = math.log(x)
 
         start = time.time()
-        ln_nice_numbers = ln(x)
+        ln_nice_numbers = ln(x, lista_ln, nice_numbers)
         end = time.time()
 
         erro.append(abs(ln_nice_numbers - ln_calculadora))
