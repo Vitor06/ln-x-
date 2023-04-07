@@ -12,7 +12,24 @@ class struct (Structure):
 class IEE754(Union):
      _fields_ = [("x",c_float),
                  ("bits",struct)]
+def get_IEE754(y):
+    z = IEE754()
+    z.x = y
+    fz = z.bits.f
+    e = z.bits.e
+    s = z.bits.s
+    f23 = 0.00000011920928955078125 # 2^-23
+    fr = fz*f23 # ver como float
+    return fz,e,s,fr
 
+def sub(x):
+    fz, e, s, fr = get_IEE754(x)
+    sub_num = ((2<<e)-(2<<(127)))>>128
+    return sub_num
+def add(x):
+    fz, e, s, fr = get_IEE754(x)
+    add_num = ((2<<e)+(2<<(127)))>>128
+    return add_num
 def novo_numero_IEEE(num):
     y = IEE754()
     y.x = num
@@ -26,7 +43,7 @@ def IEEE_POW_2(exp):
     if(exp > 0):
         b = c_uint8(exp - 1)
         while b.value != 0:
-            carry = c_uint8(a.value & b.value) # O valor do carry é calculado 
+            carry = c_uint8(a.value & b.value) # O valor do carry é calculado
             a = c_uint8(a.value ^ b.value) # O valor da soma é calculado
             b = c_uint8(carry.value << 1) # O valor do carry é shiftado para esquerda
     elif(exp < 0):
@@ -75,7 +92,7 @@ def gerar_nice_numbers(inicio, fim):
 
 def gerar_tabela_ln_da_lista(lista_numeros):
     # Modifica a lista para apenas número positivos
-    lista_numeros = [i for i in lista_numeros if i > 0] 
+    lista_numeros = [i for i in lista_numeros if i > 0]
 
     dict_ln = {}
 
@@ -127,6 +144,7 @@ def ln(x, lista_ln, nice_numbers):
     return resultado_ln
 
 def main():
+    print(add(8),sub(8))
     nice_numbers = gerar_nice_numbers(-8, 8)
     lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
 
@@ -170,4 +188,3 @@ def main():
     plt.show()
 
 main()
-
