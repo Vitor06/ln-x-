@@ -12,30 +12,19 @@ class struct (Structure):
 class IEE754(Union):
      _fields_ = [("x",c_float),
                  ("bits",struct)]
-def get_IEE754(y):
-    z = IEE754()
-    z.x = y
-    fz = z.bits.f
-    e = z.bits.e
-    s = z.bits.s
-    f23 = 0.00000011920928955078125 # 2^-23
-    fr = fz*f23 # ver como float
-    return fz,e,s,fr
 
-def sub(x):
-    fz, e, s, fr = get_IEE754(x)
-    sub_num = ((2<<e)-(2<<(127)))>>128
-    return sub_num
-def add(x):
-    fz, e, s, fr = get_IEE754(x)
-    add_num = ((2<<e)+(2<<(127)))>>128
-    return add_num
 def novo_numero_IEEE(num):
     y = IEE754()
     y.x = num
     return y
 
+def IEEE_NEG(x):
+    num = novo_numero_IEEE(x)
+    num.bits.s = 0 if num.bits.s == 1 else 1
+    return num.x
+
 def IEEE_POW_2(exp):
+    exp = int(exp)
     x = novo_numero_IEEE(2)
 
     a = c_uint8(x.bits.e)
@@ -43,15 +32,21 @@ def IEEE_POW_2(exp):
     if(exp > 0):
         b = c_uint8(exp - 1)
         while b.value != 0:
-            carry = c_uint8(a.value & b.value) # O valor do carry é calculado
-            a = c_uint8(a.value ^ b.value) # O valor da soma é calculado
-            b = c_uint8(carry.value << 1) # O valor do carry é shiftado para esquerda
+            # O valor do carry é calculado
+            carry = c_uint8(a.value & b.value) 
+            # O valor da soma é calculado
+            a = c_uint8(a.value ^ b.value) 
+            # O valor do carry é shiftado para esquerda
+            b = c_uint8(carry.value << 1)
     elif(exp < 0):
         b = c_uint8(-exp + 1)
         while b.value != 0:
-            borrow = c_uint8((~a.value) & b.value) # O valor do borrow é calculado
-            a = c_uint8(a.value ^ b.value) # XOR
-            b = c_uint8(borrow.value << 1) # O valor do borrow é shiftado para esquerda
+            # O valor do borrow é calculado
+            borrow = c_uint8((~a.value) & b.value)
+            # XOR
+            a = c_uint8(a.value ^ b.value) 
+            # O valor do borrow é shiftado para esquerda
+            b = c_uint8(borrow.value << 1)
 
     x.bits.e = a.value
 
@@ -67,14 +62,14 @@ def gerar_nice_numbers(inicio, fim):
          nice_number_1 = IEEE_POW_2(i).x + 1
          nice_number_2 = IEEE_POW_2(i).x - 1
 
-         nice_number_3 = IEEE_POW_2(-i).x + 1
-         nice_number_4 = IEEE_POW_2(-i).x - 1
+         nice_number_3 = IEEE_POW_2(IEEE_NEG(i)).x + 1
+         nice_number_4 = IEEE_POW_2(IEEE_NEG(i)).x - 1
 
-         nice_number_5 = -IEEE_POW_2(-i).x + 1
-         nice_number_6 = -IEEE_POW_2(-i).x - 1
+         nice_number_5 = IEEE_NEG(IEEE_POW_2(IEEE_NEG(i)).x + 1)
+         nice_number_6 = IEEE_NEG(IEEE_POW_2(IEEE_NEG(i)).x - 1)
 
-         nice_number_7 = -IEEE_POW_2(i).x + 1
-         nice_number_8 = -IEEE_POW_2(i).x - 1
+         nice_number_7 = IEEE_NEG(IEEE_POW_2(i).x + 1)
+         nice_number_8 = IEEE_NEG(IEEE_POW_2(i).x - 1)
 
          nice_numbers.append(nice_number_1)
          nice_numbers.append(nice_number_2)
@@ -144,7 +139,6 @@ def ln(x, lista_ln, nice_numbers):
     return resultado_ln
 
 def main():
-    print(add(8),sub(8))
     nice_numbers = gerar_nice_numbers(-8, 8)
     lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
 
