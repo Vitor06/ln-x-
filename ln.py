@@ -1,9 +1,7 @@
 from ctypes import Structure, Union, c_float, c_uint32, c_uint8
+from matplotlib import pyplot as plt
 import math
 import time
-
-from matplotlib import pyplot as plt
-
 
 class struct (Structure):
      _fields_ = [("f", c_uint32,23),
@@ -20,21 +18,10 @@ def novo_numero_IEEE(num):
     y.x = num
     return y
 
-# def get_IEE754(y):
-#     z = IEE754()
-#     z.x = y
-#     fz = z.bits.f
-#     e = z.bits.e
-#     s = z.bits.s
-#     f23 = 0.00000011920928955078125 # 2^-23
-#     fr = fz*f23 # ver como float
-#     return fz,e,s,fr
-
 def IEEE_POW_2(exp):
     x = novo_numero_IEEE(2)
 
     a = c_uint8(x.bits.e)
-    
 
     if(exp > 0):
         b = c_uint8(exp - 1)
@@ -50,6 +37,7 @@ def IEEE_POW_2(exp):
             b = c_uint8(borrow.value << 1) # O valor do borrow é shiftado para esquerda
 
     x.bits.e = a.value
+
     return x # Retorna o valor final
 
 def gerar_nice_numbers(inicio, fim):
@@ -59,17 +47,17 @@ def gerar_nice_numbers(inicio, fim):
          # Encontra os nice numbers no formato
          # +- (2 ** +-i) +- 1
 
-         nice_number_1 = (2**i)+1
-         nice_number_2 = (2**i)-1
+         nice_number_1 = IEEE_POW_2(i).x + 1
+         nice_number_2 = IEEE_POW_2(i).x - 1
 
-         nice_number_3 = (2**-i)+1
-         nice_number_4 = (2**-i)-1
+         nice_number_3 = IEEE_POW_2(-i).x + 1
+         nice_number_4 = IEEE_POW_2(-i).x - 1
 
-         nice_number_5 = -(2**-i)+1
-         nice_number_6 = -(2**-i)-1
+         nice_number_5 = -IEEE_POW_2(-i).x + 1
+         nice_number_6 = -IEEE_POW_2(-i).x - 1
 
-         nice_number_7 = -(2**i)+1
-         nice_number_8 = -(2**i)-1
+         nice_number_7 = -IEEE_POW_2(i).x + 1
+         nice_number_8 = -IEEE_POW_2(i).x - 1
 
          nice_numbers.append(nice_number_1)
          nice_numbers.append(nice_number_2)
@@ -81,11 +69,13 @@ def gerar_nice_numbers(inicio, fim):
          nice_numbers.append(nice_number_8)
 
     nice_numbers.sort()
-    nice_numbers = list(dict.fromkeys(nice_numbers)) # Remove números duplicados
+    # Remove números duplicados
+    nice_numbers = list(dict.fromkeys(nice_numbers))
     return nice_numbers
 
 def gerar_tabela_ln_da_lista(lista_numeros):
-    lista_numeros = [i for i in lista_numeros if i > 0] # Modifica a lista para apenas número positivos
+    # Modifica a lista para apenas número positivos
+    lista_numeros = [i for i in lista_numeros if i > 0] 
 
     dict_ln = {}
 
@@ -104,43 +94,8 @@ def reduzir_argumento(x, lista):
 
     return x_red, imediatamente_superior
 
-def encontrar_i_do_nice_number(nice_number):
-    i = 0
-
-    while True:
-        nice_numbers = []
-
-        nice_number_1 = (2**i)+1
-        nice_number_2 = (2**i)-1
-
-        nice_number_3 = (2**-i)+1
-        nice_number_4 = (2**-i)-1
-
-        nice_number_5 = -(2**-i)+1
-        nice_number_6 = -(2**-i)-1
-
-        nice_number_7 = -(2**i)+1
-        nice_number_8 = -(2**i)-1
-
-        nice_numbers.append(nice_number_1)
-        nice_numbers.append(nice_number_2)
-        nice_numbers.append(nice_number_3)
-        nice_numbers.append(nice_number_4)
-        nice_numbers.append(nice_number_5)
-        nice_numbers.append(nice_number_6)
-        nice_numbers.append(nice_number_7)
-        nice_numbers.append(nice_number_8)
-
-        if(nice_number in nice_numbers):
-            break
-        else:
-            i = i + 1
-
-    return i
-
 def recuperacao_residuo(xn):
     return abs(1 - xn)
-
 
 def ln(x):
     nice_numbers = gerar_nice_numbers(-8, 8)
@@ -172,53 +127,46 @@ def ln(x):
     resultado_ln = yj - recuperacao_residuo(xj)
 
     return resultado_ln
-    # print("ln(", x, ") = ", resultado_ln)
 
 def main():
-    x = IEEE_POW_2(-3)
-    print(x.x)
+    erro, x_list, tempo, resultado_calculadora, resultado_nice_numbers = [],[],[],[],[]
+    for x in range(1,100):
 
-    # fz, e, s, fr = get_IEE754(3.125)
-    # print(fz,e,s,fr)
+        ln_calculadora = math.log(x)
 
-    # x para cálculo de ln(x)
-    # erro,x_list,tempo,resultado_calculadora,resultado_nice_numbers = [],[],[],[],[]
-    # for x in range(1,100):
+        start = time.time()
+        ln_nice_numbers = ln(x)
+        end = time.time()
 
-    #     ln_calculadora = math.log(x)
+        erro.append(abs(ln_nice_numbers - ln_calculadora))
 
-    #     start = time.time()
-    #     ln_nice_numbers = ln(x)
-    #     end = time.time()
+        tempo.append(end -start)
+        x_list.append(x)
+        resultado_calculadora.append(ln_calculadora)
+        resultado_nice_numbers.append(ln_nice_numbers)
 
-    #     erro.append(abs(ln_nice_numbers - ln_calculadora))
+    # Erro
+    plt.plot(x_list,erro,label = 'ln(X)-Calculadora X Nice-Numbers')
+    plt.ylabel('Erro')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
 
-    #     tempo.append(end -start)
-    #     x_list.append(x)
-    #     resultado_calculadora.append(ln_calculadora)
-    #     resultado_nice_numbers.append(ln_nice_numbers)
+    # Tempo
+    plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
+    plt.ylabel('Tempo')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
 
-    # #Erro
-    # plt.plot(x_list,erro,label = 'ln(X)-Calculadora X Nice-Numbers')
-    # plt.ylabel('Erro')
-    # plt.xlabel('Argumento')
-    # plt.legend()
-    # plt.show()
-    # #tempo
-    # plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
-    # plt.ylabel('Tempo')
-    # plt.xlabel('Argumento')
-    # plt.legend()
-    # plt.show()
-    # #Resultado
-    # plt.plot(x_list,resultado_calculadora,label = 'ln(X)-Calculadora',color ='blue')
-    # plt.plot(x_list,resultado_nice_numbers,label = 'ln(X)- Nice-Numbers',color =  'red')
-    # plt.yscale('log')
-    # plt.ylabel('ln(x)')
-    # plt.xlabel('Argumento')
-    # plt.legend()
-    # plt.show()
-
+    # Resultado
+    plt.plot(x_list,resultado_calculadora,label = 'ln(X)-Calculadora',color ='blue')
+    plt.plot(x_list,resultado_nice_numbers,label = 'ln(X)- Nice-Numbers',color =  'red')
+    plt.yscale('log')
+    plt.ylabel('ln(x)')
+    plt.xlabel('Argumento')
+    plt.legend()
+    plt.show()
 
 main()
 
