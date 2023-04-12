@@ -33,9 +33,9 @@ def IEEE_POW_2(exp):
         b = c_uint8(exp - 1)
         while b.value != 0:
             # O valor do carry é calculado
-            carry = c_uint8(a.value & b.value) 
+            carry = c_uint8(a.value & b.value)
             # O valor da soma é calculado
-            a = c_uint8(a.value ^ b.value) 
+            a = c_uint8(a.value ^ b.value)
             # O valor do carry é shiftado para esquerda
             b = c_uint8(carry.value << 1)
     elif(exp < 0):
@@ -44,7 +44,7 @@ def IEEE_POW_2(exp):
             # O valor do borrow é calculado
             borrow = c_uint8((~a.value) & b.value)
             # XOR
-            a = c_uint8(a.value ^ b.value) 
+            a = c_uint8(a.value ^ b.value)
             # O valor do borrow é shiftado para esquerda
             b = c_uint8(borrow.value << 1)
 
@@ -142,10 +142,11 @@ def main():
     nice_numbers = gerar_nice_numbers(-8, 8)
     lista_ln = gerar_tabela_ln_da_lista(nice_numbers)
 
-    erro, x_list, tempo, resultado_calculadora, resultado_nice_numbers = [],[],[],[],[]
+    erro, x_list, tempo_nice_numbers,tempo_calculadora, resultado_calculadora, resultado_nice_numbers = [],[],[],[],[],[]
     for x in range(1,100):
-
+        star_calculadora = time.time()
         ln_calculadora = math.log(x)
+        end_calculadora = time.time()
 
         start = time.time()
         ln_nice_numbers = ln(x, lista_ln, nice_numbers)
@@ -153,7 +154,9 @@ def main():
 
         erro.append(abs(ln_nice_numbers - ln_calculadora))
 
-        tempo.append(end -start)
+        tempo_nice_numbers.append(end -start)
+        tempo_calculadora.append(end_calculadora-star_calculadora)
+
         x_list.append(x)
         resultado_calculadora.append(ln_calculadora)
         resultado_nice_numbers.append(ln_nice_numbers)
@@ -166,7 +169,9 @@ def main():
     plt.show()
 
     # Tempo
-    plt.plot(x_list,tempo,label = 'Tempo-Nice-Numbers')
+    plt.plot(x_list,tempo_nice_numbers,label = 'Tempo-Nice-Numbers')
+    plt.plot(x_list,tempo_calculadora,label = 'Tempo-Nice-Numbers')
+
     plt.ylabel('Tempo')
     plt.xlabel('Argumento')
     plt.legend()
