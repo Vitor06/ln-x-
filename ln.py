@@ -170,7 +170,7 @@ def main():
 
     # Tempo
     plt.plot(x_list,tempo_nice_numbers,label = 'Tempo-Nice-Numbers')
-    plt.plot(x_list,tempo_calculadora,label = 'Tempo-Nice-Numbers')
+    plt.plot(x_list,tempo_calculadora,label = 'Tempo-Calculadora')
 
     plt.ylabel('Tempo')
     plt.xlabel('Argumento')
